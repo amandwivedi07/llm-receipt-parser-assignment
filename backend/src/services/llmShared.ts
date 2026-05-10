@@ -1,11 +1,3 @@
-// Shared LLM plumbing: output schema, parsing, and the model-fallback
-// wrapper. The provider file (openrouter.ts) only has to implement the HTTP
-// call and feed it to `createParser`. Prompts live in ./prompts.ts and are
-// re-exported here so consumers can import everything from one place.
-//
-// Why only OpenRouter: it gateways to OpenAI, Anthropic, Google, Meta, etc.
-// — one HTTP shape, every model. A separate OpenAI client would duplicate
-// code without adding capability.
 import { z } from "zod";
 import type { ParsedReceipt } from "../types";
 import { SYSTEM_PROMPT } from "./prompts";
@@ -14,11 +6,9 @@ export { SYSTEM_PROMPT };
 
 const LineItemSchema = z.object({
   name: z.string(),
-  amount: z.number(),                            // may be negative (discount/refund)
+  amount: z.number(),
 });
 
-// Matches the schema in prompts.ts (Receipt Extraction Engine v1.0).
-// snake_case throughout — matches the LLM contract.
 export const ParsedReceiptSchema = z.object({
   merchant_name: z.string().nullable(),
   receipt_date: z.string().nullable(),
@@ -45,7 +35,6 @@ export function normalizeMediaType(mimeType: string): MediaType {
 }
 
 export function parseJSON(raw: string): ParsedReceipt | null {
-  // Strip markdown fences if the model slipped one in.
   const cleaned = raw.replace(/```json|```/g, "").trim();
   try {
     return ParsedReceiptSchema.parse(JSON.parse(cleaned));
@@ -74,21 +63,6 @@ export type CallLLM = (
   systemPrompt: string
 ) => Promise<string>;
 
-/**
- * Build a parser that tries each caller in sequence.
- *
- * Per caller: one attempt with SYSTEM_PROMPT.
- *
- * Across callers: if a caller throws (network / 4xx / 5xx) or returns
- * unparseable output, we move on to the next caller. This handles "this
- * provider / model is down" without giving up — particularly valuable
- * when the chain mixes models or providers (e.g. GPT-4o → Gemini → Llama),
- * since a different model is much more likely to succeed than retrying
- * the same one that just failed.
- *
- * If every caller is exhausted, return FALLBACK_RECEIPT so the user
- * still lands on the correction UI with a low-confidence skeleton.
- */
 export function createMultiParser(callers: CallLLM[]) {
   if (callers.length === 0) {
     throw new Error("createMultiParser requires at least one caller");
@@ -110,7 +84,6 @@ export function createMultiParser(callers: CallLLM[]) {
           `LLM caller #${i} returned unparseable output; falling through.`
         );
       } catch (err) {
-        // HTTP / network failure — try the next caller.
         const msg = err instanceof Error ? err.message : String(err);
         console.warn(`LLM caller #${i} threw: ${msg}; falling through.`);
       }
@@ -120,7 +93,6 @@ export function createMultiParser(callers: CallLLM[]) {
   };
 }
 
-/** Single-caller convenience wrapper around `createMultiParser`. */
 export function createParser(callLLM: CallLLM) {
   return createMultiParser([callLLM]);
 }

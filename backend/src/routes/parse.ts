@@ -7,10 +7,9 @@ import type { Receipt } from "../types";
 
 const router = Router();
 
-// Store in memory — we immediately convert to base64 and persist in DB
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (["image/jpeg", "image/png", "image/webp"].includes(file.mimetype)) {
       cb(null, true);
@@ -58,11 +57,8 @@ router.post(
         createdAt: now,
       };
 
-      // Persist immediately — even unsaved receipts, so they survive a refresh
       upsertReceipt(receipt);
 
-      // Don't send imageBase64 in the response body (it's large)
-      // Frontend fetches it separately from /api/receipts/:id/image
       const { imageBase64: _img, ...receiptWithoutImage } = receipt;
       res.json(receiptWithoutImage);
     } catch (err) {

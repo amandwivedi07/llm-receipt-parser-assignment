@@ -18,7 +18,6 @@ export default function UploadPage() {
       return;
     }
 
-    // Show preview
     const reader = new FileReader();
     reader.onload = (e) => setPreview(e.target?.result as string);
     reader.readAsDataURL(file);

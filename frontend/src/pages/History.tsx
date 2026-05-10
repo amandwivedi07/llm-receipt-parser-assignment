@@ -38,8 +38,6 @@ export default function HistoryPage() {
 
         <div className={styles.list}>
           {receipts.map((r) => {
-            // Defensive — old/partial rows in the JSON file may be missing
-            // some fields. Render gracefully instead of crashing the page.
             const itemCount = r.line_items?.length ?? 0;
             const total = typeof r.total === "number" ? r.total : null;
             return (

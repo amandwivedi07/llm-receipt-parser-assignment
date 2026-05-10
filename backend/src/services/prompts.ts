@@ -1,27 +1,3 @@
-/**
- * Receipt-parser prompts (Receipt Extraction Engine v1.0).
- *
- * Kept in their own file so prompt iteration (the most common kind of
- * change to this codebase) doesn't churn the LLM plumbing module and
- * stays easy to diff in code review.
- *
- * Both prompts are consumed by `createParser` in `./llmShared.ts`, which
- * sends them through OpenRouter to whichever model is configured.
- *
- * Output schema (snake_case throughout — matches the prompt contract):
- *   {
- *     merchant_name: string | null,
- *     receipt_date: string | null,        // YYYY-MM-DD
- *     line_items: { name: string, amount: number }[],   // amount may be negative
- *     subtotal: number | null,
- *     tax: number | null,
- *     tip: number | null,
- *     total: number | null,
- *     confidence_score: number,           // float 0.0 – 1.0
- *     warnings: string[]                  // empty array if none
- *   }
- */
-
 export const SYSTEM_PROMPT = `SYSTEM PROMPT — Receipt Extraction Engine v1.0
 ==============================================
 

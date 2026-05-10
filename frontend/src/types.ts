@@ -1,9 +1,7 @@
-// Mirrors backend/src/types.ts (snake_case for LLM-output fields).
-
 export type LineItem = {
   id: string;
   name: string;
-  amount: number;            // may be negative (discounts, refunds)
+  amount: number;
 };
 
 export type ParsedReceipt = {
@@ -36,5 +34,4 @@ export type Receipt = {
   createdAt: string;
 };
 
-// UI threshold: anything below this is rendered as a low-confidence warning.
 export const LOW_CONFIDENCE_THRESHOLD = 0.7;

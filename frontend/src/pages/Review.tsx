@@ -15,8 +15,6 @@ function fmt(n: number | null): string {
 }
 
 function parseAmount(s: string): number | null {
-  // Allow negative numbers — line item amounts may be negative (discounts,
-  // refunds), per the LLM contract in prompts.ts.
   const cleaned = s.trim();
   const negative = cleaned.startsWith("-");
   const digits = cleaned.replace(/[^0-9.]/g, "");
@@ -37,9 +35,6 @@ function recomputeTotal(
   return computeLineTotal(items) + (tax ?? 0) + (tip ?? 0);
 }
 
-// Snapshot = the editable subset of a Receipt, normalized so we can compare
-// "what's on screen now" vs "what was last saved" without false positives from
-// per-item ids, image data, savedAt, etc.
 type Snapshot = {
   merchant_name: string | null;
   receipt_date: string | null;
@@ -76,13 +71,7 @@ export default function ReviewPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
-  // Baseline for "have they edited anything since the last persisted state?"
-  // Initialized on load, refreshed on successful save.
   const [lastSaved, setLastSaved] = useState<Snapshot | null>(null);
-  // Subtotal and total are always derived (display-only):
-  //   subtotal = sum(line_items)
-  //   total    = subtotal + tax + tip
-  // The user edits line items / tax / tip; subtotal and total follow.
 
   useEffect(() => {
     if (!id) return;
@@ -91,8 +80,6 @@ export default function ReviewPage() {
       fetch(`/api/receipts/${id}/image`).then((r) => r.json()),
     ])
       .then(([r, img]) => {
-        // Normalize on load: replace the LLM's subtotal/total with the
-        // computed values so display + persisted state are consistent.
         const computedSubtotal = computeLineTotal(r.line_items);
         const computedTotal =
           computedSubtotal + (r.tax ?? 0) + (r.tip ?? 0);
@@ -112,13 +99,9 @@ export default function ReviewPage() {
       });
   }, [id]);
 
-  // ── Unsaved-changes tracking (must run before early returns) ─────
   const hasUnsavedChanges =
     !!receipt && !!lastSaved && !snapshotsEqual(snapshot(receipt), lastSaved);
 
-  // Warn the user if they try to refresh / close the tab with unsaved edits.
-  // `preventDefault()` alone is sufficient in modern browsers; we drop the
-  // deprecated `returnValue` assignment.
   useEffect(() => {
     if (!hasUnsavedChanges) return;
     const handler = (e: BeforeUnloadEvent) => {
@@ -132,14 +115,10 @@ export default function ReviewPage() {
   if (error || !receipt)
     return <div className={styles.loading}>{error || "Not found"}</div>;
 
-  // ── Derived values ───────────────────────────────────────────────
   const lineTotal = computeLineTotal(receipt.line_items);
   const computedTotal = lineTotal + (receipt.tax ?? 0) + (receipt.tip ?? 0);
   const isLowConfidence = receipt.confidence_score < LOW_CONFIDENCE_THRESHOLD;
 
-  // ── Field updaters ───────────────────────────────────────────────
-  // Helper: rebuild the receipt with subtotal + total recomputed from the
-  // (possibly updated) line_items, tax, and tip values.
   function withDerivedTotals(
     r: Receipt,
     overrides: Partial<Pick<Receipt, "line_items" | "tax" | "tip">>
@@ -199,7 +178,6 @@ export default function ReviewPage() {
     });
   }
 
-  // ── Save ─────────────────────────────────────────────────────────
   async function handleSave() {
     if (!receipt) return;
     setSaving(true);
@@ -218,8 +196,6 @@ export default function ReviewPage() {
         }),
       });
       if (!res.ok) throw new Error("Save failed");
-      // Merge the server's view of the saved receipt back in (notably savedAt).
-      // imageBase64 isn't in the response, so the spread keeps our local copy.
       const updated = (await res.json()) as Partial<Receipt>;
       const merged = { ...receipt, ...updated };
       setReceipt(merged);
@@ -233,17 +209,11 @@ export default function ReviewPage() {
     }
   }
 
-  // ── Diff helpers ─────────────────────────────────────────────────
-  // These run inside the component after the `if (!receipt) return ...`
-  // guard, so `receipt` is non-null here.
   function wasChanged(field: string, currentVal: string | number | null): boolean {
     const orig = receipt!.originalExtraction as unknown as Record<string, unknown>;
     return String(orig[field]) !== String(currentVal);
   }
 
-  // Line items don't carry stable ids on the original extraction,
-  // so we match by index. False positives if the user inserts/removes in the
-  // middle — acceptable for v1 since the UI has no reorder.
   type LineItemChange = "unchanged" | "edited" | "new";
   function lineItemChange(
     idx: number,
@@ -259,7 +229,6 @@ export default function ReviewPage() {
 
   return (
     <div className={styles.page}>
-      {/* Header */}
       <header className={styles.header}>
         <button
           className={styles.backBtn}
@@ -291,7 +260,6 @@ export default function ReviewPage() {
         </button>
       </header>
 
-      {/* Confidence + warnings banner */}
       {(isLowConfidence || receipt.warnings.length > 0) && (
         <div
           className={
@@ -323,7 +291,6 @@ export default function ReviewPage() {
       )}
 
       <div className={styles.layout}>
-        {/* Left: original image */}
         <aside className={styles.imagePane}>
           <p className={styles.panelLabel}>ORIGINAL IMAGE</p>
           {image ? (
@@ -340,11 +307,9 @@ export default function ReviewPage() {
           </p>
         </aside>
 
-        {/* Right: editable fields */}
         <main className={styles.fieldsPane}>
           <p className={styles.panelLabel}>EXTRACTED DATA — CLICK ANY FIELD TO EDIT</p>
 
-          {/* Merchant + Date */}
           <div className={styles.metaRow}>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>
@@ -377,7 +342,6 @@ export default function ReviewPage() {
             </div>
           </div>
 
-          {/* Line items */}
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <span className={styles.sectionTitle}>LINE ITEMS</span>
@@ -434,7 +398,6 @@ export default function ReviewPage() {
               })}
             </div>
 
-            {/* Subtotals */}
             <div className={styles.totalsBlock}>
               <div className={styles.totalRow}>
                 <span className={styles.totalLabel}>Subtotal</span>
@@ -488,7 +451,6 @@ export default function ReviewPage() {
             </div>
           </div>
 
-          {/* Original extraction diff */}
           <details className={styles.diffBlock}>
             <summary className={styles.diffSummary}>
               What was originally extracted

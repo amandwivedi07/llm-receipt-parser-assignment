@@ -1,14 +1,10 @@
-// Tests for the LLM service plumbing — the layer between an unpredictable
-// vision model and the user's UI. These cover the behaviors that real
-// production failures would trip on: malformed JSON, wrong shape, prompt
-// regression, and the model-fallback contract.
 import { describe, it, expect, vi } from "vitest";
 import {
   parseJSON,
   createParser,
   createMultiParser,
   normalizeMediaType,
-  
+
   SYSTEM_PROMPT,
   FALLBACK_RECEIPT,
 } from "../llmShared";
@@ -49,7 +45,7 @@ describe("parseJSON", () => {
   });
 
   it("returns null when the shape doesn't match the schema", () => {
-    const wrongShape = JSON.stringify({ merchant_name: "X" }); // missing required fields
+    const wrongShape = JSON.stringify({ merchant_name: "X" });
     expect(parseJSON(wrongShape)).toBeNull();
   });
 
@@ -163,11 +159,6 @@ describe("createMultiParser", () => {
     expect(() => createMultiParser([])).toThrow();
   });
 
-  // The actual timeout is enforced in openrouter.ts via
-  // AbortSignal.timeout, but its consequence — a thrown error from the
-  // caller — is what makes the chain fall through. This confirms the
-  // contract: a timeout-shaped throw triggers fallthrough, not a hard
-  // failure.
   it("treats a timeout-shaped error like any other throw and falls through", async () => {
     const timeoutError = new Error("OpenRouter[gpt-4o-mini] timed out after 25000ms");
     const a = vi.fn().mockRejectedValue(timeoutError);

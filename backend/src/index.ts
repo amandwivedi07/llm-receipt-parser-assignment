@@ -21,10 +21,6 @@ app.use("/api/receipts", receiptsRouter);
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
-// Map upload errors to a real 400 instead of the default 500.
-// Two sources of "bad upload" errors:
-//   - multer.MulterError (e.g. LIMIT_FILE_SIZE)
-//   - Error thrown by our fileFilter in routes/parse.ts (wrong mime type)
 app.use(
   (err: unknown, _req: Request, res: Response, next: NextFunction) => {
     if (err instanceof multer.MulterError) {

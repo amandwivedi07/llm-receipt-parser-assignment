@@ -8,7 +8,7 @@ type Props = {
   type?: "text" | "date";
   align?: "left" | "right";
   prefix?: string;
-  highlight?: boolean;  // visually flag empty/zero fields
+  highlight?: boolean;
   bold?: boolean;
 };
 
@@ -33,7 +33,6 @@ export default function EditableField({
     }
   }, [editing]);
 
-  // Sync external value changes (e.g. computed total) into display
   useEffect(() => {
     if (!editing) setDraft(value);
   }, [value, editing]);

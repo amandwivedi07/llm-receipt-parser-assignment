@@ -60,7 +60,6 @@
   background: var(--success-border);
 }
 
-/* Banners */
 .warnBanner {
   display: flex;
   align-items: flex-start;
@@ -93,7 +92,6 @@
   font-size: 13px;
 }
 
-/* Layout: image left, fields right */
 .layout {
   display: grid;
   grid-template-columns: 340px 1fr;
@@ -152,7 +150,6 @@
   font-style: italic;
 }
 
-/* Fields pane */
 .fieldsPane {
   padding: 24px 32px;
   display: flex;
@@ -161,7 +158,6 @@
   max-width: 700px;
 }
 
-/* Merchant + Date */
 .metaRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -195,7 +191,6 @@
   font-family: var(--font-sans);
 }
 
-/* Section */
 .section {
   display: flex;
   flex-direction: column;
@@ -228,7 +223,6 @@
 }
 .addBtn:hover { border-color: var(--accent); color: var(--accent); }
 
-/* Items table */
 .itemsTable {
   display: flex;
   flex-direction: column;
@@ -288,7 +282,6 @@
 }
 .removeBtn:hover { color: #dc2626; }
 
-/* Totals */
 .totalsBlock {
   border: 1px solid var(--border);
   border-top: none;
@@ -352,7 +345,6 @@
   font-weight: 600;
 }
 
-/* Diff block */
 .diffBlock {
   border: 1px solid var(--border);
   border-radius: var(--radius);
