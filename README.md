@@ -5,7 +5,7 @@ Upload a photo of a receipt, get back structured data, review and correct any mi
 ## Setup
 
 ```bash
-git clone <repo> && cd receipt-parser
+git clone <repo> && cd llm-receipt-parser-assignment
 npm run install:all
 cp backend/.env.example backend/.env   # then add your OPENROUTER_API_KEY
 npm run dev
