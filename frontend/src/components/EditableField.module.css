@@ -1,0 +1,89 @@
+.display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  cursor: text;
+  border-radius: var(--radius);
+  transition: background 0.1s;
+  min-height: 36px;
+  position: relative;
+}
+
+.display:hover {
+  background: var(--accent-light);
+}
+
+.display:hover .editIcon {
+  opacity: 1;
+}
+
+.value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  flex: 1;
+}
+
+.placeholder {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  flex: 1;
+}
+
+.prefix {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.editIcon {
+  font-size: 12px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.1s;
+  flex-shrink: 0;
+}
+
+.empty {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+}
+.empty:hover {
+  background: #fff0cc;
+}
+
+.bold .value,
+.bold .input {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Editing state */
+.editingWrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 2px;
+}
+
+.input {
+  flex: 1;
+  border: none;
+  border-bottom: 2px solid var(--accent);
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  background: transparent;
+  padding: 7px 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.input:focus {
+  background: var(--accent-light);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
